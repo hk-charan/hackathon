@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Coding Tutor Chatbot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <div class="chat-container">
+    <h2>Coding Tutor 🤖</h2>
+    <div id="chat-box"></div>
+    <div id="typing-indicator" class="typing hidden">Bot is typing<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+    <div class="input-area">
+      <input type="text" id="user-input" placeholder="Ask a coding question...">
+      <button onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <script>
+    function formatCode(text) {
+      return text.replace(/```(.*?)```/gs, (_, code) => {
+        return `<pre><code>${code}</code></pre>`;
+      });
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("user-input");
+      const message = input.value.trim();
+      if (!message) return;
+
+      const chatBox = document.getElementById("chat-box");
+      chatBox.innerHTML += `<div class="user-msg"><span>You:</span> ${message}</div>`;
+      input.value = "";
+
+      const typing = document.getElementById("typing-indicator");
+      typing.classList.remove("hidden");
+
+      const response = await fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+
+      const data = await response.json();
+      typing.classList.add("hidden");
+
+      const formatted = formatCode(data.reply);
+      chatBox.innerHTML += `<div class="bot-msg"><span>Bot:</span> ${formatted}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
